@@ -6,11 +6,13 @@
 *.ko
 *.obj
 *.elf
+*.rel
 
 # Linker output
 *.ilk
 *.map
 *.exp
+*.lk
 
 # Precompiled Headers
 *.gch
@@ -35,12 +37,24 @@
 *.i*86
 *.x86_64
 *.hex
+*.ihx
+*.noi
+*.rom
+
+# CCI3 files
+l.bat
+c.bat
+all.bat
+launch.tmp
 
 # Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
+*.lst
+*.asm
+*.sym
 
 # Kernel Module Compile Results
 *.mod*
