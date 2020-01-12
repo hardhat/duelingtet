@@ -13,6 +13,7 @@ enum SpriteFrameType {
     FT_VACUUM,
     FT_LOST,
     FT_WON,
+	FT_HURDLEFALL,
 };
 /*
 
@@ -20,7 +21,7 @@ const byte const *frame[]={
 	spriteAttr0,spriteAttr1,spriteAttr2,spriteAttr3,
     spriteAttr4,spriteAttr5,spriteAttr6,spriteAttr7,
     spriteAttr8,spriteAttr9,spriteAttr10,spriteAttr11,
-    spriteAttr12,spriteAttr13,
+    spriteAttr12,spriteAttr13,spriteAttr14,
 };
 
 int showFrame(byte *sp, int x,int y,int f)

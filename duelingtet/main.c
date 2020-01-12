@@ -158,6 +158,12 @@ void newgame()
     newPlayer(1);
     player[1].isAI=1;
 
+	for(i=0;i<32;i++) {
+		sprites[i].x=0;
+		sprites[i].y=192;
+		sprites[i].pattern=0;
+		sprites[i].colour=0;
+	}
     sprites[0].x=16;
     sprites[0].y=48;
     sprites[0].colour=15;
@@ -512,13 +518,16 @@ void main()
 	//disable_nmi();
 #endif
 
+	pick_minigames();
 	disable_nmi();
 	screen_mode_1_text();
 	fill_color(0,0xf3,32);
 	load_ascii();
 	cls();
 	print_at(8,8,"GET READY PLAYER 1");
-	print_at(8,10,"MINIGAME COMMENSING");
+	print_at(8,10,(char *)getMinigameName());
+
+	print_at(2,12,(char *)getMinigameInstruction());
     screen_on();
     enable_nmi();
     delay(120);

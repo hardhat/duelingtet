@@ -9,9 +9,7 @@ extern const byte house_bitmapPatBIGRUN[];
 extern const byte track_bitmapColBIGRUN[];
 extern const byte track_bitmapPatBIGRUN[];
 
-enum MiniGameType { MGT_NONE, MGT_REDBALLOON, MGT_JUMPHURDLES, MGT_THROWDISC, MGT_KICKBALL, MGT_VACUUM, MGT_PUNCHBOXER, MGT_SHAKEPOPCORN};
 byte activeMinigame;
-enum MiniGameMode { MM_INSTRUCTIONS, MM_COUNTDOWN, MM_PLAY, MM_WON, MM_LOST};
 byte minigameMode;
 
 const char * minigameName[]={
@@ -27,23 +25,18 @@ const char * minigameName[]={
 
 const char * minigameInstruction[]={
     "NONE",
-    "CATCH THE RED BALLOON AND AVOID THE YELLOW BALOON",
-    "JUMP THE HURDLES",
-    "THROW THE DISC FAR",
-    "KICK THE BALL INTO THE GOAL",
-    "VACUUM THE FLOOR",
-    "WIND UP THEN PUNCH THE BOXER",
-    "SHAKE THE POPCORN",
+    "UP TO CATCH THE RED BALLOON     AND DOWN TO AVOID THE YELLOW    BALOON",
+    "USE LEFT FIRE TO JUMP THE       HURDLES",
+    "UP AND DOWN THEN FIRE TO        THROW THE DISC FAR",
+    "KICK THE BALL INTO THE          GOAL",
+    "LEFT AND RIGHT TO VACUUM THE    FLOOR",
+    "HOLD DOWN TO WIND UP THEN       PUNCH THE BOXER",
+    "UP AND DOWN TO SHAKE THE        POPCORN",
 };
 
-static byte lastJoypad;
+byte lastJoypad1,lastJoypad2;
 
-struct MinigameState {
-    byte x,y;   // where is the character
-    int state;
-    byte frame;
-    byte frameTimer;
-} minigameState[3];
+struct MinigameState minigameState[MAX_MINIGAMESTATE];
 
 void setMinigameMode(int newMode)
 {
@@ -82,9 +75,9 @@ void buildSpriteState(int count)
         offset+=showFrame(sp,minigameState[i].x,minigameState[i].y,minigameState[i].frame);
     }
     if(minigameMode==MM_WON) {
-        offset+=showFrame((byte *)(sprites+offset),22,104,FT_WON);
+        offset+=showFrame((byte *)(sprites+offset),110,32,FT_WON);
     } else if(minigameMode==MM_LOST) {
-        offset+=showFrame((byte *)(sprites+offset),22,104,FT_LOST);
+        offset+=showFrame((byte *)(sprites+offset),110,32,FT_LOST);
     }
     while(offset<16) {
         sprites[offset].y=0xd0;
@@ -125,12 +118,11 @@ void updateJumpHurdles()
         // game over
         activeMinigame=MGT_NONE;
     } else {
-        hurdle->x-=2;
+        hurdle->x-=1;
     }
     if(mc->state==0) {  // just running
-        mc->x+=2;
-        if(joypad_1&FIRE1 && !(lastJoypad&FIRE1)) mc->state=0xf0; // jumping
-        lastJoypad=joypad_1;
+        mc->x+=1;
+        if(joypad_1&FIRE1 && !(lastJoypad1&FIRE1)) mc->state=0xf0; // jumping
         if(mc->frameTimer>0) {
             mc->frameTimer--;
         } else {
@@ -138,12 +130,13 @@ void updateJumpHurdles()
             mc->frameTimer=1;
         }
         if(mc->frame>FT_RUNEND) mc->frame=FT_RUN;
-        if(mc->x>hurdle->x-16 && mc->x<hurdle->x+16) {
+        if(mc->x>hurdle->x-12 && mc->x<hurdle->x+12) {
             // collision: play_sound(SFX_OUCH);
             minigameMode=MM_LOST;
+			hurdle->frame=FT_HURDLEFALL;
         }
     } else {    // jumping
-        mc->x+=2;
+        mc->x+=1;
         mc->y+=mc->state;
         mc->state+=2;
         if(mc->state>0x110) mc->state=0;    // done jump
@@ -151,12 +144,13 @@ void updateJumpHurdles()
         mc->frameTimer=1;
     }
     // Loss condition
-    if(mc->x>hurdle->x-16 && mc->x<hurdle->x+16 && mc->y>72) {
+    if(mc->x>hurdle->x-12 && mc->x<hurdle->x+12 && mc->y>82) {
         // collision: play_sound(SFX_OUCH);
         minigameMode=MM_LOST;
+		hurdle->frame=FT_HURDLEFALL;
     }
     // Win condition
-    if(mc->state==0 && mc->x>=hurdle->x+16) {
+    if(minigameMode==MM_PLAY && mc->state==0 && mc->x>=hurdle->x+16) {
         minigameMode=MM_WON;
     }
 
@@ -211,15 +205,19 @@ void updateShakePopcorn()
 
 }
 
+void pick_minigames()
+{
+	activeMinigame=rnd(1,7);
+	activeMinigame=MGT_JUMPHURDLES;     // only one implemented for now.
+
+    setMinigameMode(MM_INSTRUCTIONS);
+}
+
 void init_minigames()
 {
     int i;
 
-	activeMinigame=rnd(1,7);
-	activeMinigame=MGT_JUMPHURDLES;     // only one implemented for now.
-
-    minigameMode=MM_INSTRUCTIONS;
-
+	setMinigameMode(MM_PLAY);
 	screen_off();
 	screen_mode_2_bitmap();
 	sprites_16x16();
@@ -244,7 +242,8 @@ void init_minigames()
 #endif
 	load_spatternrle(spritePatRLE);
 
-	lastJoypad=0;
+	lastJoypad1=0;
+	lastJoypad2=0;
 
     switch(activeMinigame) {
     case MGT_REDBALLOON:
@@ -298,6 +297,8 @@ void update_minigames()
         updateShakePopcorn();
         break;
     }
+    lastJoypad1=joypad_1;
+    lastJoypad2=joypad_2;
 }
 
 void draw_minigames()
