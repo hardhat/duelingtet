@@ -140,6 +140,32 @@ void newLevel()
     //play_sound(6); play_sound(7); // = Game Start
 }
 
+void clearSprites()
+{
+	int i;
+	
+	for(i=0;i<32;i++) {
+		sprites[i].x=0;
+		sprites[i].y=192;
+		sprites[i].pattern=0;
+		sprites[i].colour=0;
+	}
+}
+
+void initSprites()
+{
+	clearSprites();
+	
+    sprites[0].x=16;
+    sprites[0].y=48;
+    sprites[0].colour=15;
+    sprites[0].pattern=0;
+    sprites[2].x=96;
+    sprites[2].y=48;
+    sprites[2].colour=1;
+    sprites[2].pattern=0;
+}
+
 void newgame()
 {
     int i;
@@ -158,20 +184,7 @@ void newgame()
     newPlayer(1);
     player[1].isAI=1;
 
-	for(i=0;i<32;i++) {
-		sprites[i].x=0;
-		sprites[i].y=192;
-		sprites[i].pattern=0;
-		sprites[i].colour=0;
-	}
-    sprites[0].x=16;
-    sprites[0].y=48;
-    sprites[0].colour=15;
-    sprites[0].pattern=0;
-    sprites[2].x=96;
-    sprites[2].y=48;
-    sprites[2].colour=1;
-    sprites[2].pattern=0;
+	initSprites();
 }
 
 void newPiece(int id)
@@ -210,7 +223,7 @@ void updateSprites()
         else if(joypad_2&DOWN) yy=2;
         else yy=0;
         if(joypad_2&LEFT) xx=-2;
-        else if(joypad_2&RIGHT) xx=2;
+       else if(joypad_2&RIGHT) xx=2;
         else xx=0;
         sprites[2].x+=xx;
         sprites[2].y+=yy;
@@ -438,7 +451,9 @@ void updateAI(int playerNo,int pass)
     struct Player *p=player+playerNo;
 
     // try to place it
-    if(p->lastTile == p->tile && p->lastTile!=NO_TILE) {
+    if(p->newTargetTimer>0) {
+		p->newTargetTimer--;
+    } else if(p->lastTile == p->tile && p->lastTile!=NO_TILE) {
         if(fitsMapTile(p->lastCol,p->lastRow,p->lastTile)) {
             setMapTile(p->lastCol,p->lastRow,p->lastTile);
             p->score+=4;    // todo calculate
@@ -449,7 +464,6 @@ void updateAI(int playerNo,int pass)
             return;
         }
     }
-    if(p->newTargetTimer>0) p->newTargetTimer--;
 
     // otherwise make it happen.
     if(p->tile==NO_TILE) {
@@ -507,22 +521,19 @@ void updatePlayer(int playerNo)
     }
 }
 
-void main()
+void bonus_level()
 {
-	int pass=0;
-#if 1
-	disable_nmi();
-	showtitle();
-	enable_nmi();
-	delay(120);
-	//disable_nmi();
-#endif
-
+	int i;
+	
 	pick_minigames();
+
 	disable_nmi();
 	screen_mode_1_text();
 	fill_color(0,0xf3,32);
 	load_ascii();
+	clearSprites();
+	updatesprites(0,31);
+
 	cls();
 	print_at(8,8,"GET READY PLAYER 1");
 	print_at(8,10,(char *)getMinigameName());
@@ -545,6 +556,41 @@ void main()
     }
 
 	disable_nmi();
+	screen_mode_1_text();
+	fill_color(0,0xf3,32);
+	load_ascii();
+	clearSprites();
+	updatesprites(0,31);
+	cls();
+	print_at(8,8,"LEVEL SUMMARY");
+	print_at(8,10,(char *)getMinigameName());
+
+	print_at(8,12,"BONUS POINTS EARNED:");
+    screen_on();
+    enable_nmi();
+
+	for(i=0;i<120;i++) {
+		print_at(0,13,str(get_minigame_score()*i/120));
+		delay(1);
+	}
+	delay(60);
+
+	player[0].score+=get_minigame_score();
+}
+
+void main()
+{
+	int pass=0;
+#if 1
+	disable_nmi();
+	showtitle();
+	enable_nmi();
+	delay(120);
+	//disable_nmi();
+#endif
+
+
+	disable_nmi();
 	init();
 	newgame();
 	enable_nmi();
@@ -553,7 +599,7 @@ void main()
 	while(1) {
 		disable_nmi();
         //print_at(0,0,"    LEVEL 01 ");
-        updatesprites(0,2);
+        updatesprites(0,3);
 		drawMap(pass);
 		pass++;
 		if(pass==3) {
@@ -591,6 +637,14 @@ void main()
         }
         if(levelTimer==0 && level<16) {
             level++;
+			
+			if((level%5)==0) bonus_level();
+
+			disable_nmi();
+			init();
+			initSprites();
+			enable_nmi();
+			
             newLevel();
         }
 

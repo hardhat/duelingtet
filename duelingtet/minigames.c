@@ -11,6 +11,8 @@ extern const byte track_bitmapPatBIGRUN[];
 
 byte activeMinigame;
 byte minigameMode;
+byte minigameStage;
+int minigameScore;
 
 const char * minigameName[]={
     "NONE",
@@ -98,13 +100,13 @@ void updateRedBalloon()
 void initJumpHurdles()
 {
     struct MinigameState *s=minigameState+0;
-    s->x=32;    // MC
+    s->x=0;    // MC
     s->y=105;
     s->state=0;
     s->frame=FT_RUN; // running
     s->frameTimer=1;
     s++;
-    s->x=240;   // hurdle
+    s->x=254;   // hurdle
     s->y=105;
     s->state=0;
     s->frame=FT_HURDLE;
@@ -116,7 +118,14 @@ void updateJumpHurdles()
     struct MinigameState *hurdle=minigameState+1;
     if(hurdle->x==0 || mc->x>240) {
         // game over
-        activeMinigame=MGT_NONE;
+		if(minigameMode==MM_WON) minigameScore+=10;
+		if(minigameStage<3) {
+			initJumpHurdles();
+			minigameMode=MM_PLAY;
+			minigameStage++;
+		} else {
+			activeMinigame=MGT_NONE;
+		}
     } else {
         hurdle->x-=1;
     }
@@ -127,14 +136,9 @@ void updateJumpHurdles()
             mc->frameTimer--;
         } else {
             mc->frame++;
-            mc->frameTimer=1;
+            mc->frameTimer=2;
         }
         if(mc->frame>FT_RUNEND) mc->frame=FT_RUN;
-        if(mc->x>hurdle->x-12 && mc->x<hurdle->x+12) {
-            // collision: play_sound(SFX_OUCH);
-            minigameMode=MM_LOST;
-			hurdle->frame=FT_HURDLEFALL;
-        }
     } else {    // jumping
         mc->x+=1;
         mc->y+=mc->state;
@@ -218,6 +222,8 @@ void init_minigames()
     int i;
 
 	setMinigameMode(MM_PLAY);
+	minigameStage=0;
+	minigameScore=0;
 	screen_off();
 	screen_mode_2_bitmap();
 	sprites_16x16();
@@ -311,3 +317,7 @@ int is_minigame_done()
 	return activeMinigame==MGT_NONE;	// all done
 }
 
+int get_minigame_score()
+{
+	return minigameScore;
+}

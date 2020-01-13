@@ -1,8 +1,8 @@
 enum MiniGameType { MGT_NONE, MGT_REDBALLOON, MGT_JUMPHURDLES, MGT_THROWDISC, MGT_KICKBALL, MGT_VACUUM, MGT_PUNCHBOXER, MGT_SHAKEPOPCORN};
-byte activeMinigame;
 enum MiniGameMode { MM_INSTRUCTIONS, MM_COUNTDOWN, MM_PLAY, MM_WON, MM_LOST};
 
 extern byte lastJoypad;
+extern byte activeMinigame;
 
 struct MinigameState {
     byte x,y;   // where is the character
@@ -20,6 +20,7 @@ void init_minigames();
 void update_minigames();
 void draw_minigames();
 int is_minigame_done();
+int get_minigame_score();
 const char *getMinigameName();
 const char *getMinigameInstruction();
 
