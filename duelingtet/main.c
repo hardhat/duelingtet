@@ -529,7 +529,7 @@ void bonus_level()
 
 	disable_nmi();
 	screen_mode_1_text();
-	fill_color(0,0xf3,32);
+	fill_color(0,0xf4,32);
 	load_ascii();
 	clearSprites();
 	updatesprites(0,31);
@@ -557,22 +557,23 @@ void bonus_level()
 
 	disable_nmi();
 	screen_mode_1_text();
-	fill_color(0,0xf3,32);
+	fill_color(0,0xf4,32);
+	fill_color(6,0xf1,2);
 	load_ascii();
 	clearSprites();
 	updatesprites(0,31);
 	cls();
 	print_at(8,8,"LEVEL SUMMARY");
-	print_at(8,10,(char *)getMinigameName());
 
 	print_at(8,12,"BONUS POINTS EARNED:");
     screen_on();
     enable_nmi();
 
 	for(i=0;i<120;i++) {
-		print_at(0,13,str(get_minigame_score()*i/120));
+		print_at(12,13,str(get_minigame_score()*i/120));
 		delay(1);
 	}
+	print_at(12,13,str(get_minigame_score()));
 	delay(60);
 
 	player[0].score+=get_minigame_score();
@@ -589,6 +590,7 @@ void main()
 	//disable_nmi();
 #endif
 
+    bonus_level();
 
 	disable_nmi();
 	init();
